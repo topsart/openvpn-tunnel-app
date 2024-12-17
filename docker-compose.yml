@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  openvpn-client:
+    image: frauhottelmann/openvpn-client
+    container_name: openvpn-client
+    restart: always
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - "/dev/net/tun:/dev/net/tun"
+    command: --config /vpn/client.ovpn --auth-nocache
+    volumes:
+      - ./openvpn:/vpn
+      - ./logs:/var/log/openvpn
+    network_mode: "bridge"
+
+  app-container:
+    build: ./app
+    container_name: app-container
+    depends_on:
+      - openvpn-client
+    network_mode: "service:openvpn-client"
+    restart: unless-stopped
